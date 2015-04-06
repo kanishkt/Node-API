@@ -1,12 +1,13 @@
 // Get the packages we need
 var express = require('express');
 var mongoose = require('mongoose');
-var Llama = require('./models/llama');
+var User = require('./models/User');
+var Task = require('./models/Task');
 var bodyParser = require('body-parser');
 var router = express.Router();
 
 //replace this with your Mongolab URL
-mongoose.connect('mongodb://localhost/mp3');
+mongoose.connect('mongodb://kanishkt:mongolab123@ds041861.mongolab.com:41861/mp3');
 
 // Create our Express application
 var app = express();
@@ -38,14 +39,213 @@ homeRoute.get(function(req, res) {
 });
 
 //Llama route 
-var llamaRoute = router.route('/llamas');
+var UserRoute = router.route('/users');
 
-llamaRoute.get(function(req, res) {
-  res.json([{ "name": "alice", "height": 12 }, { "name": "jane", "height": 13 }]);
+UserRoute.get(function(req, res){
+    exec(User, req.query, 100, function(err, users){
+        console.log(users);
+        res.json(users);
+    });
 });
 
-//Add more routes here
+UserRoute.post(function(req,res){
+	var name= req.query.name;
+	var email= req.query.email;
+	var pendingTask= req.query.pendingTask;
+	var a = new User ({"name":name,"email":email,"pendingTask":pendingTask,"date":Date.now()})
+	a.save(function(err,a){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else{
+			console.log("Save Successful");
+			res.send("Save Successful");
+		}
+	})
+
+});
+
+UserRoute.options(function(req, res){
+      res.writeHead(200);
+      res.end();
+});
+
+var User2Route= router.route('/users/:id');
+
+User2Route.get(function(req,res){
+	var id = req.params.id;
+	User.findOne({"_id":id}, function(err,users){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else if(!users) {
+      		return res.status(404).json({
+       			 message: 'User with id ' + id + ' can not be found.'
+      	})
+      }
+		else
+  			res.send(users);
+  })
+});
+
+User2Route.put(function(req,res) {
+    var id = req.params.id;
+    var name= req.query.name;
+	var email= req.query.email;
+	var pendingTask= req.query.pendingTask;
+	User.findByIdAndUpdate(id,{ $set: { "name":name,"email":email,"pendingTask":pendingTask,"date":Date.now()}},function(err,User){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else if(!User) {
+      		return res.status(404).json({
+       			 message: 'User with id ' + id + ' can not be found.'
+      	})
+      }
+		else{
+			console.log("Save Successful");
+			res.send(User);
+		}
+	})
+ });
+
+User2Route.delete(function(req,res) {
+
+	var id = req.params.id;
+	User.remove({"_id":id},function(err,User){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else if(!User) {
+      		return res.status(404).json({
+       			 message: 'User with id ' + id + ' can not be found.'
+      	})
+      }
+		else{
+			console.log("Delete Successful");
+			res.send("Delete Successful");
+		}
+	})
+});
+
+var TaskRoute = router.route('/tasks');
+
+TaskRoute.get(function(req, res){
+    exec(Task, req.query, 100, function(err, tasks){
+        console.log(tasks);
+        res.json(tasks);
+    });
+});
+
+TaskRoute.post(function(req,res){
+	var name= req.query.name;
+	var description= req.query.description;
+	var deadline= req.query.deadline;
+	var completed = req.query.completed;
+	var assignedUser = req.query.assignedUser;
+	var assignedUserName = req.query.assignedUserName;
+	var a = new Task({"name":name,"description":description,"deadline":deadline,"completed":completed,"assignedUser":assignedUser,"assignedUserName":assignedUserName,"dateCreated":Date.now()});
+	a.save(function(err,a){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else{
+			console.log("Save Successful");
+			res.send("Save Successful");
+		}
+	})
+
+});
+
+TaskRoute.options(function(req, res){
+      res.writeHead(200);
+      res.end();
+});
+
+var Task2Route= router.route('/tasks/:id');
+
+Task2Route.get(function(req,res){
+	var id = req.params.id;
+	Task.findOne({"_id":id}, function(err,tasks){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else if(!tasks) {
+      		return res.status(404).json({
+       			 message: 'Task with id ' + id + ' can not be found.'
+      	})
+      }
+		else
+  			res.send(tasks);
+  })
+});
+
+Task2Route.put(function(req,res) {
+  	var id = req.params.id;
+  	var name= req.query.name;
+	var description= req.query.description;
+	var deadline= req.query.deadline;
+	var completed = req.query.completed;
+	var assignedUser = req.query.assignedUser;
+	var assignedUserName = req.query.assignedUserName;
+	if(assignedUser==undefined)
+		assignedUser="";
+	if(assignedUserName==undefined)
+		assignedUserName="unassigned";
+	Task.findByIdAndUpdate(id,{ $set: {"name":name,"description":description,"deadline":deadline,"completed":completed,"assignedUser":assignedUser,"assignedUserName":assignedUserName,"dateCreated":Date.now()}},function(err,Task){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else if(!Task) {
+      		return res.status(404).json({
+       			 message: 'Task with id ' + id + ' can not be found.'
+      	})
+      }
+		else{
+			console.log("Save Successful");
+			res.send(Task);
+		}
+	})
+ });
+
+Task2Route.delete(function(req,res) {
+
+	var id = req.params.id;
+	Task.remove({"_id":id},function(err,Task){
+		if(err){
+			console.log(err);
+			res.send(err);
+		}
+		else if(!Task) {
+      		return res.status(404).json({
+       			 message: 'User with id ' + id + ' can not be found.'
+      	})
+      }
+		else{
+			console.log("Delete Successful");
+			res.send("Delete Successful");
+		}
+	})
+});
+
+function exec(model, query, limit, cb){
+    model = model.find(JSON.parse(query.where || "{}"));
+    if(query.sort) model.sort(JSON.parse(query.sort));
+    if(query.select) model.select(JSON.parse(query.select));
+    if(query.limit) model.limit(JSON.parse(query.limit) || limit);
+    if(query.skip) model.skip(query.skip);
+    if(query.count) model.count();
+    model.exec(cb);
+}
+
 
 // Start the server
 app.listen(port);
-console.log('Server running on port ' + port); 
+console.log('Server running on port ' + port);
