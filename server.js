@@ -44,8 +44,11 @@ UserRoute.get(function(req, res){
     exec(User, req.query, 100, function(err, users){
         console.log(users);
         if(err)
-        	res.json({message: err, data:[]});
-        res.json({message: 'okay', data: users});
+        	res.status(500).json({message: "Unable to GET users", data:[]});
+        else if(!users)
+        	res.status(404).json({message:"No users", data:[]});
+        else
+        	res.status(200).json({message: 'okay', data: users});
     });
 });
 
@@ -57,10 +60,10 @@ UserRoute.post(function(req,res){
 	a.email=req.body.email;
 	a.save(function(err,a){
 		if(err){
-			res.json({message: err, data:[]});
+			res.status(500).json({message: "Unable to POST Data", data:[]});
 		}
 		else{
-			res.json({message: 'User Added', data: a});
+			res.status(201).json({message: 'User Added', data: a});
 		}
 	})
 
@@ -77,7 +80,7 @@ User2Route.get(function(req,res){
 	var id = req.params.id;
 	User.findOne({"_id":id}, function(err,users){
 		if(err){
-			res.json({message: err, data:[]});
+			res.status(500).json({message: "Unable to GET User", data:[]});
 		}
 		else if(!users) {
       		return res.status(404).json({
@@ -85,23 +88,23 @@ User2Route.get(function(req,res){
       	})
       }
 		else
-  			res.json({message: 'okay', data: users});
+  			res.status(200).json({message: 'okay', data: users});
   })
 });
 
 User2Route.put(function (req, res) {
         User.findById(req.params.id, function(err, user) {
             if(err)
-                res.status(500).send({message: 'put failed', data: err});
+                res.status(500).json({message: 'Unable to Update User', data: err});
 
             user.name = req.body.name;
             user.email = req.body.email;
 
             user.save(function(err){
                 if(err)
-                    res.status(404).send({message: 'User to be updated not found', data: err});
-
-                res.status(200).json({message: 'user updated successfully', data:user});
+                    res.status(500).json({message: 'Unable to Update User', data: err});
+                else
+                	res.status(200).json({message: 'user updated successfully', data:user});
             });
         });
     })
@@ -111,7 +114,7 @@ User2Route.delete(function(req,res) {
 	var id = req.params.id;
 	User.remove({"_id":id},function(err,User){
 		if(err){
-			res.json({message: err, data:[]});
+			res.status(500).json({message: "Unable to delete User", data:[]});
 		}
 		else if(!User) {
       		return res.status(404).json({
@@ -119,7 +122,7 @@ User2Route.delete(function(req,res) {
       	})
       }
 		else{
-			res.json({message: 'User Deleted', data: []});
+			res.staus(200).json({message: 'User Deleted', data: []});
 		}
 	})
 });
@@ -129,29 +132,30 @@ var TaskRoute = router.route('/tasks');
 TaskRoute.get(function(req, res){
     exec(Task, req.query, 100, function(err, tasks){
        if(err)
-        	res.json({message:'error'});
-        res.json({message: 'okay', data: tasks});
+        	res.status(500).json({message: "Unable to GET Tasks", data:[]});
+        else if(!tasks)
+        	res.status(404).json({message:"No Tasks", data:[]});
+        else
+        	res.status(200).json({message: 'okay', data: tasks});
     });
 });
 
-TaskRoute.post(function(req,res){
-	var name= req.query.name;
-	var description= req.query.description;
-	var deadline= req.query.deadline;
-	var completed = req.query.completed;
-	var assignedUser = req.query.assignedUser;
-	var assignedUserName = req.query.assignedUserName;
-	var a = new Task({"name":name,"description":description,"deadline":deadline,"completed":completed,"assignedUser":assignedUser,"assignedUserName":assignedUserName,"dateCreated":Date.now()});
-	a.save(function(err,a){
-		if(err){
-			console.log(err);
-			res.send(err);
-		}
-		else{
-			console.log("Save Successful");
-			res.send("Save Successful");
-		}
-	})
+TaskRoute.post(function(req, res) {
+         var task = new Task();
+         task.name = req.body.name;
+         task.description = req.body.description;
+         task.deadline = req.body.deadline;
+         task.completed = req.body.completed;
+         task.assignedUserName = req.body.assignedUserName;
+         task.dateCreated = req.body.dateCreated;
+
+         task.save(function(err) {
+            if(err)
+				res.status(500).json({message: "Unable to POST Data", data:[]});
+		
+			else
+				res.status(201).json({message: 'Task Added', data: task});
+		})
 
 });
 
@@ -166,64 +170,53 @@ Task2Route.get(function(req,res){
 	var id = req.params.id;
 	Task.findOne({"_id":id}, function(err,tasks){
 		if(err){
-			console.log(err);
-			res.send(err);
+			res.status(500).json({message: "Unable to GET Tasks", data:[]});
 		}
 		else if(!tasks) {
       		return res.status(404).json({
-       			 message: 'Task with id ' + id + ' can not be found.'
+       			 message: 'Task with id ' + id + ' can not be found.',data:[]
       	})
       }
 		else
-  			res.json({message: 'okay', data: tasks});
+  			res.status(200).json({message: 'okay', data: tasks});
   })
 });
 
-Task2Route.put(function(req,res) {
-  	var id = req.params.id;
-  	var name= req.query.name;
-	var description= req.query.description;
-	var deadline= req.query.deadline;
-	var completed = req.query.completed;
-	var assignedUser = req.query.assignedUser;
-	var assignedUserName = req.query.assignedUserName;
-	if(assignedUser==undefined)
-		assignedUser="";
-	if(assignedUserName==undefined)
-		assignedUserName="unassigned";
-	Task.findByIdAndUpdate(id,{ $set: {"name":name,"description":description,"deadline":deadline,"completed":completed,"assignedUser":assignedUser,"assignedUserName":assignedUserName,"dateCreated":Date.now()}},function(err,Task){
-		if(err){
-			console.log(err);
-			res.send(err);
-		}
-		else if(!Task) {
-      		return res.status(404).json({
-       			 message: 'Task with id ' + id + ' can not be found.'
-      	})
-      }
-		else{
-			console.log("Save Successful");
-			res.send(Task);
-		}
-	})
- });
+Task2Route.put(function (req, res) {
+         Task.findById(req.params.id, function(err, task) {
+             if(err)
+                 res.status(500).json({message: 'Unable to Update Tasks', data: err});
+
+             task.name = req.body.name;
+             task.description = req.body.description;
+             task.deadline = req.body.deadline;
+             task.completed = req.body.completed;
+             task.assignedUserName = req.body.assignedUserName;
+             task.dateCreated = req.body.dateCreated;
+
+             task.save(function(err){
+                 if(err)
+                     res.status(500).json({message: 'Unable to Update Tasks', data: err});
+                 else
+                 	res.status(200).json({message: 'Task updated successfully', data:Task});
+             });
+         });
+     })
 
 Task2Route.delete(function(req,res) {
 
 	var id = req.params.id;
 	Task.remove({"_id":id},function(err,Task){
-		if(err){
-			console.log(err);
-			res.send(err);
+	if(err){
+			res.status(500).json({message: "Unable to delete Task", data:[]});
 		}
 		else if(!Task) {
       		return res.status(404).json({
-       			 message: 'User with id ' + id + ' can not be found.'
+       			 message: 'Task with id ' + id + ' can not be found.', data:[]
       	})
       }
 		else{
-			console.log("Delete Successful");
-			res.send("Delete Successful");
+			res.staus(200).json({message: 'User Deleted', data: []});
 		}
 	})
 });
