@@ -37,30 +37,30 @@ var homeRoute = router.route('/');
 homeRoute.get(function(req, res) {
   res.json({ message: 'Hello World!' });
 });
-
-//Llama route 
+ 
 var UserRoute = router.route('/users');
 
 UserRoute.get(function(req, res){
     exec(User, req.query, 100, function(err, users){
         console.log(users);
-        res.json(users);
+        if(err)
+        	res.json({message: err, data:[]});
+        res.json({message: 'okay', data: users});
     });
 });
 
 UserRoute.post(function(req,res){
 	var name= req.query.name;
 	var email= req.query.email;
-	var pendingTask= req.query.pendingTask;
-	var a = new User ({"name":name,"email":email,"pendingTask":pendingTask,"date":Date.now()})
+	var a = new User ()
+	a.name=req.body.name;
+	a.email=req.body.email;
 	a.save(function(err,a){
 		if(err){
-			console.log(err);
-			res.send(err);
+			res.json({message: err, data:[]});
 		}
 		else{
-			console.log("Save Successful");
-			res.send("Save Successful");
+			res.json({message: 'User Added', data: a});
 		}
 	})
 
@@ -77,57 +77,49 @@ User2Route.get(function(req,res){
 	var id = req.params.id;
 	User.findOne({"_id":id}, function(err,users){
 		if(err){
-			console.log(err);
-			res.send(err);
+			res.json({message: err, data:[]});
 		}
 		else if(!users) {
       		return res.status(404).json({
-       			 message: 'User with id ' + id + ' can not be found.'
+       			 message: 'User with id ' + id + ' can not be found.',data:[]
       	})
       }
 		else
-  			res.send(users);
+  			res.json({message: 'okay', data: users});
   })
 });
 
-User2Route.put(function(req,res) {
-    var id = req.params.id;
-    var name= req.query.name;
-	var email= req.query.email;
-	var pendingTask= req.query.pendingTask;
-	User.findByIdAndUpdate(id,{ $set: { "name":name,"email":email,"pendingTask":pendingTask,"date":Date.now()}},function(err,User){
-		if(err){
-			console.log(err);
-			res.send(err);
-		}
-		else if(!User) {
-      		return res.status(404).json({
-       			 message: 'User with id ' + id + ' can not be found.'
-      	})
-      }
-		else{
-			console.log("Save Successful");
-			res.send(User);
-		}
-	})
- });
+User2Route.put(function (req, res) {
+        User.findById(req.params.id, function(err, user) {
+            if(err)
+                res.status(500).send({message: 'put failed', data: err});
+
+            user.name = req.body.name;
+            user.email = req.body.email;
+
+            user.save(function(err){
+                if(err)
+                    res.status(404).send({message: 'User to be updated not found', data: err});
+
+                res.status(200).json({message: 'user updated successfully', data:user});
+            });
+        });
+    })
 
 User2Route.delete(function(req,res) {
 
 	var id = req.params.id;
 	User.remove({"_id":id},function(err,User){
 		if(err){
-			console.log(err);
-			res.send(err);
+			res.json({message: err, data:[]});
 		}
 		else if(!User) {
       		return res.status(404).json({
-       			 message: 'User with id ' + id + ' can not be found.'
+       			 message: 'User with id ' + id + ' can not be found.', data:[]
       	})
       }
 		else{
-			console.log("Delete Successful");
-			res.send("Delete Successful");
+			res.json({message: 'User Deleted', data: []});
 		}
 	})
 });
@@ -136,8 +128,9 @@ var TaskRoute = router.route('/tasks');
 
 TaskRoute.get(function(req, res){
     exec(Task, req.query, 100, function(err, tasks){
-        console.log(tasks);
-        res.json(tasks);
+       if(err)
+        	res.json({message:'error'});
+        res.json({message: 'okay', data: tasks});
     });
 });
 
@@ -182,7 +175,7 @@ Task2Route.get(function(req,res){
       	})
       }
 		else
-  			res.send(tasks);
+  			res.json({message: 'okay', data: tasks});
   })
 });
 
