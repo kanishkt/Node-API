@@ -59,9 +59,9 @@ UserRoute.post(function(req,res){
 	var a = new User ()
 	a.name=req.body.name;
 	a.email=req.body.email;
-	a.save(function(err,a){
+  	a.save(function(err,a){
 		if(err){
-			res.status(500).json({message: "Unable to POST Data", data:[]});
+			res.status(500).json({message: "Could to Add New USER", data:[]});
 		}
 		else{
 			res.status(201).json({message: 'User Added', data: a});
@@ -123,7 +123,7 @@ User2Route.delete(function(req,res) {
       	})
       }
 		else{
-			res.staus(200).json({message: 'User Deleted', data: []});
+			res.status(200).json({message: 'User Deleted', data: []});
 		}
 	})
 });
