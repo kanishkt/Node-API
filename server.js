@@ -42,7 +42,7 @@ homeRoute.get(function(req, res) {
 var UserRoute = router.route('/users');
 
 UserRoute.get(function(req, res){
-    exec(User, req.query, 100, function(err, users){
+    exec(User, req.query, Infinity, function(err, users){
         console.log(users);
         if(err)
         	res.status(500).json({message: "Unable to GET users", data:[]});
@@ -96,14 +96,14 @@ User2Route.get(function(req,res){
 User2Route.put(function (req, res) {
         User.findById(req.params.id, function(err, user) {
             if(err)
-                res.status(500).json({message: 'Unable to Update User', data: err});
+                res.status(500).json({message: 'Unable to Update User', data: []});
 
             user.name = req.body.name;
             user.email = req.body.email;
 
             user.save(function(err){
                 if(err)
-                    res.status(500).json({message: 'Unable to Update User', data: err});
+                    res.status(500).json({message: 'Unable to Update User', data: []});
                 else
                 	res.status(200).json({message: 'user updated successfully', data:user});
             });
@@ -186,7 +186,7 @@ Task2Route.get(function(req,res){
 Task2Route.put(function (req, res) {
          Task.findById(req.params.id, function(err, task) {
              if(err)
-                 res.status(500).json({message: 'Unable to Update Tasks', data: err});
+                 res.status(500).json({message: 'Unable to Update Tasks', data: []});
 
              task.name = req.body.name;
              task.description = req.body.description;
@@ -197,9 +197,9 @@ Task2Route.put(function (req, res) {
 
              task.save(function(err){
                  if(err)
-                     res.status(500).json({message: 'Unable to Update Tasks', data: err});
+                     res.status(500).json({message: 'Unable to Update Tasks', data: []});
                  else
-                 	res.status(200).json({message: 'Task updated successfully', data:Task});
+                 	res.status(200).json({message: 'Task updated successfully', data:task});
              });
          });
      })
@@ -217,7 +217,7 @@ Task2Route.delete(function(req,res) {
       	})
       }
 		else{
-			res.staus(200).json({message: 'User Deleted', data: []});
+			res.status(200).json({message: 'User Deleted', data: []});
 		}
 	})
 });
