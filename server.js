@@ -43,7 +43,6 @@ var UserRoute = router.route('/users');
 
 UserRoute.get(function(req, res){
     exec(User, req.query, Infinity, function(err, users){
-        console.log(users);
         if(err)
         	res.status(500).json({message: "Unable to GET users", data:[]});
         else if(!users)
@@ -217,7 +216,7 @@ Task2Route.delete(function(req,res) {
       	})
       }
 		else{
-			res.status(200).json({message: 'User Deleted', data: []});
+			res.status(200).json({message: 'Task Deleted', data: []});
 		}
 	})
 });
